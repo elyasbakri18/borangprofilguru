@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Borang Profil Guru</title>
+
+  <!-- Google Font: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <!-- Babel Compiler for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-6 sm:py-10 px-4 sm:px-6 lg:px-8">
+
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const App = () => {
+      // State utama borang
+      const [formData, setFormData] = useState({
+        nama: '',
+        kelayakan: '',
+        opsyen: ['', ''],
+        pengalaman: [
+          { subjek: '', tahun: '' },
+          { subjek: '', tahun: '' },
+          { subjek: '', tahun: '' }
+        ]
+      });
+
+      const [isSubmitted, setIsSubmitted] = useState(false);
+      const [isSubmitting, setIsSubmitting] = useState(false);
+
+      // URL Web App Google Apps Script
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8_JVHnXYkE1Ot1ynrxWDbE5t0VOmTmDEYMd6joDBNevbJihrdX4Kf5jBNB-rXs4g/exec';
+
+      // Menguruskan input teks umum
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value
+        }));
+      };
+
+      // Menguruskan input Opsyen (2 ruangan)
+      const handleOpsyenChange = (index, value) => {
+        const updatedOpsyen = [...formData.opsyen];
+        updatedOpsyen[index] = value;
+        setFormData((prev) => ({
+          ...prev,
+          opsyen: updatedOpsyen
+        }));
+      };
+
+      // Menguruskan input Pengalaman Mengajar (3 baris)
+      const handlePengalamanChange = (index, field, value) => {
+        const updatedPengalaman = [...formData.pengalaman];
+        updatedPengalaman[index] = {
+          ...updatedPengalaman[index],
+          [field]: value
+        };
+        setFormData((prev) => ({
+          ...prev,
+          pengalaman: updatedPengalaman
+        }));
+      };
+
+      // Penghantaran data ke Google Apps Script
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+              'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify(formData)
+          });
+          
+          setIsSubmitted(true);
+        } catch (error) {
+          console.error('Ralat semasa menyimpan:', error);
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+
+      // Reset borang
+      const handleReset = () => {
+        setFormData({
+          nama: '',
+          kelayakan: '',
+          opsyen: ['', ''],
+          pengalaman: [
+            { subjek: '', tahun: '' },
+            { subjek: '', tahun: '' },
+            { subjek: '', tahun: '' }
+          ]
+        });
+        setIsSubmitted(false);
+      };
+
+      return (
+        <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+          
+          {/* Header Section */}
+          <div className="bg-blue-600 px-6 py-8 sm:p-10">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white text-center">
+              Sistem Profil Guru
+            </h1>
+            <p className="mt-2 text-blue-100 text-center text-sm">
+              Sila lengkapkan maklumat profil di bawah
+            </p>
+          </div>
+
+          <div className="px-6 py-8 sm:p-10">
+            {!isSubmitted ? (
+              <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+                
+                {/* 1. Nama Guru */}
+                <div>
+                  <label htmlFor="nama" className="block text-sm font-semibold text-gray-700">
+                    1. Nama Penuh Guru <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="nama"
+                    name="nama"
+                    required
+                    value={formData.nama}
+                    onChange={handleChange}
+                    className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm shadow-sm outline-none transition"
+                    placeholder="Cth: Ahmad bin Abu Bakar"
+                  />
+                </div>
+
+                {/* 2. Ijazah / Sijil Tertinggi */}
+                <div>
+                  <label htmlFor="kelayakan" className="block text-sm font-semibold text-gray-700">
+                    2. Ijazah / Sijil Tertinggi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="kelayakan"
+                    name="kelayakan"
+                    required
+                    value={formData.kelayakan}
+                    onChange={handleChange}
+                    className="mt-2 block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm shadow-sm outline-none transition"
+                    placeholder="Cth: Sarjana Muda Sains Komputer"
+                  />
+                </div>
+
+                {/* 3. Opsyen */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700">
+                    3. Opsyen <span className="text-red-500">*</span>
+                  </label>
+                  <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      required
+                      value={formData.opsyen[0]}
+                      onChange={(e) => handleOpsyenChange(0, e.target.value)}
+                      className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm shadow-sm outline-none transition"
+                      placeholder="Opsyen 1 (Cth: Matematik)"
+                    />
+                    <input
+                      type="text"
+                      value={formData.opsyen[1]}
+                      onChange={(e) => handleOpsyenChange(1, e.target.value)}
+                      className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm shadow-sm outline-none transition"
+                      placeholder="Opsyen 2 (Pilihan / Cth: Sains)"
+                    />
+                  </div>
+                </div>
+
+                {}
+                {/* 4. Pengalaman Mengajar */}
+                <div className="bg-slate-50 p-5 sm:p-6 rounded-xl border border-slate-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-4">
+                    4. Pengalaman Mengajar (Maksimum 3 Subjek)
+                  </label>
+                  <div className="space-y-4">
+                    {formData.pengalaman.map((item, index) => (
+                      <div key={index} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center">
+                        <div className="flex-1 w-full">
+                          <input
+                            type="text"
+                            value={item.subjek}
+                            onChange={(e) => handlePengalamanChange(index, 'subjek', e.target.value)}
+                            className="block w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm shadow-sm outline-none transition"
+                            placeholder={`Subjek ${index + 1} (Cth: Sejarah)`}
+                          />
+                        </div>
+                        <div className="w-full sm:w-44">
+                          <div className="relative rounded-lg shadow-sm">
+                            <input
+                              type="number"
+                              min="0"
+                              value={item.tahun}
+                              onChange={(e) => handlePengalamanChange(index, 'tahun', e.target.value)}
+                              className="block w-full rounded-lg border border-gray-300 pl-4 pr-16 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm outline-none transition"
+                              placeholder="Masa"
+                            />
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                              <span className="text-gray-500 sm:text-sm">Tahun</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-lg shadow-md text-base font-bold text-white transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.99]'}`}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Menyimpan...
+                      </span>
+                    ) : 'Simpan Maklumat'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div className="text-center py-6 sm:py-8">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+                  <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Maklumat Berjaya Disimpan!</h2>
+                
+                <div className="bg-slate-50 text-left p-6 rounded-xl border border-slate-200 shadow-sm max-w-xl mx-auto space-y-3 text-gray-800">
+                  <p><strong>Nama:</strong> {formData.nama}</p>
+                  <p><strong>Kelayakan:</strong> {formData.kelayakan}</p>
+                  <p><strong>Opsyen:</strong> {formData.opsyen.filter(Boolean).join(', ') || 'Tidak dinyatakan'}</p>
+                  <div>
+                    <strong>Pengalaman Mengajar:</strong>
+                    <ul className="list-disc pl-5 mt-2 space-y-1 text-gray-700">
+                      {formData.pengalaman.map((item, index) => (
+                        item.subjek || item.tahun ? (
+                          <li key={index}>
+                            {item.subjek || 'Tidak dinyatakan'} - {item.tahun || '0'} Tahun
+                          </li>
+                        ) : null
+                      ))}
+                      {formData.pengalaman.every(item => !item.subjek && !item.tahun) && (
+                        <li className="text-gray-500 italic">Tiada pengalaman direkodkan</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleReset}
+                  className="mt-8 inline-flex justify-center py-2.5 px-6 border border-gray-300 shadow-sm text-sm font-semibold rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition"
+                >
+                  Isi Borang Baru
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
